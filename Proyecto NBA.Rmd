@@ -104,8 +104,6 @@ df <- df %>%
     TRUE ~ NA_character_  # Por si hay algún equipo que no esté listado
   ))
 
-write.csv(df, file = "df3.csv", row.names = FALSE)
-
 ```
 ## Exploracion de datos 
 
@@ -150,7 +148,7 @@ ggplot(df, aes(x = minutes_played_per_game)) +
        y = "Frecuencia", 
        x = "minutos por partido")
 
-ggplot(df, aes(x = "", y = minutes_played_per_game)) ++
+ggplot(df, aes(x = "", y = minutes_played_per_game)) +
   geom_boxplot(fill = "yellow", color = "black") +
   theme_minimal() +
   labs(title = "Distribución de minutos por partido", 
@@ -280,7 +278,6 @@ corrplot(cor_matrix, method = "color", type = "upper",
          number.cex = 0.7,
          col = colorRampPalette(c("red", "white", "blue"))(200))
 
-write.csv(df, "df2.csv", fileEncoding = "UTF-8", row.names = FALSE)
 ```
 
 Respuestas textuales (analisis de graficas): 
@@ -314,29 +311,32 @@ G2) El tipo de la cuenta no tiene relacion con el monto del credito
 
 set.seed(365)
 
-cat_vars <- names(df)[sapply(df, function(x) is.factor(x) || is.character(x))]
 
-df_dummies <- dummy_cols(df, 
+df_cluster <- df[ , !(colnames(df) %in% c("nacionalidad", "nationality", "rendimiento_por_minuto", "nivel_jugador", "team"))]
+
+
+
+cat_vars <- setdiff(
+  colnames(df_cluster)[sapply(df_cluster, function(x) is.factor(x) || is.character(x))],
+  "name"
+)
+
+
+df_dummies <- dummy_cols(df_cluster, 
                          select_columns = cat_vars, 
                          remove_selected_columns = TRUE,
                          remove_first_dummy = FALSE)
 
-df_dummies$X = NULL
 
 num_cols <- sapply(df_dummies, is.numeric) & !grepl("_", names(df_dummies))
 
-df_scaled <- df_dummies
+df_dummies$name = NULL
 
-df_scaled[, num_cols] <- lapply(df_dummies[, num_cols], function(x) {
-  if (max(x, na.rm = TRUE) == min(x, na.rm = TRUE)) {
-    return(rep(0, length(x)))  # evita división por cero si todos los valores son iguales
-  } else {
-    return((x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE)))
-  }
-})
+num_cols <- c("age", "minutes_played_per_game", "rebounds_per_game", "assists_per_game", "points_per_game")
+df_scaled <- scale(df_dummies[ , num_cols])
 
-
-df_scaled[is.na(df_scaled)] = 0
+# Combinar con el resto (las columnas dummy)
+df_scaled <- cbind(df_scaled, df_dummies[ , !colnames(df_dummies) %in% num_cols])
 
 tot_withinss <- map_dbl(2:10,  function(k){
   model <- kmeans(x = df_scaled, centers = k)
@@ -371,7 +371,7 @@ ggplot(sil_df, aes(x = k, y = sil_width)) +
   scale_x_continuous(breaks = 2:10)
 
 
-model_customers <- kmeans(df_scaled, centers = 5)
+model_customers <- kmeans(df_scaled, centers = 6)
 
 
 cluster_k <- model_customers$cluster
@@ -394,32 +394,9 @@ Resumen_K = segment_customers_k %>%
 
 Resumen_K
 
+clusplot(segment_customers_k,segment_customers_k$cluster_k,shape=TRUE,color=TRUE,labels=2)
 
-ggplot(df, aes(x = factor(cluster_k), y = Age)) +
-  geom_boxplot(fill = "skyblue") +
-  labs(title = "Distribución de Edad por Cluster", x = "Cluster", y = "Edad") +
-  theme_minimal()
-
-ggplot(df, aes(x = factor(cluster_k), y = Credit.amount)) +
-  geom_boxplot(fill = "salmon") +
-  labs(title = "Distribución del Monto de Crédito por Cluster", x = "Cluster", y = "Monto de Crédito") +
-  theme_minimal()
-
-ggplot(df, aes(x = factor(cluster_k), y = Duration)) +
-  geom_boxplot(fill = "lightgreen") +
-  labs(title = "Duración del Crédito por Cluster", x = "Cluster", y = "Duración (meses)") +
-  theme_minimal()
-
-sexo_cluster <- df %>%
-  group_by(cluster_k, Sex) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count))
-
-ggplot(sexo_cluster, aes(x = factor(cluster_k), y = freq, fill = Sex)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Proporción Sexo por Cluster", x = "Cluster", y = "Frecuencia") +
-  theme_minimal()
-
+write.csv(df, "df_clusterizado.csv", row.names = FALSE, fileEncoding = "latin1")
 
 
 ``` 
