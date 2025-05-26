@@ -1,11 +1,13 @@
 ---
 title: "Proyecto 2"
-author: "Carlos Angel"
+author: "Carlos Angel, Pablo Donado"
 date: "2025-05-25"
 output: html_document
 ---
+# **Introducción**
+El documento contiguo presenta un análisis de un conjunto de datos con información acerca de cincuenta jugadores de la NBA.
 
-
+## Librerías
 ```{r setup, include=FALSE}
 library(dplyr)
 library(fastDummies)
@@ -24,7 +26,7 @@ library(corrplot)
 library(tidyverse)
 library(rpart)
 library(rpart.plot)
-library(caret)
+#library(caret)
 library(e1071)
 library(readxl)
 library(writexl)
@@ -32,10 +34,31 @@ library(lubridate)
 library(arules)
 library(purrr)
 library(cluster)
+```
 
-setwd("C:/Users/carlo/OneDrive/Escritorio/data mining/Proyecto_2/Proyecto_unsupervised_learning")
+### Espacio de Trabajo
+```{r}
+
+#setwd("C:/Users/carlo/OneDrive/Escritorio/data mining/Proyecto_2/Proyecto_unsupervised_learning")
+setwd("C:/Users/josep/OneDrive - UVG/SEMESTRE V/Data Mining/PROYECTO_FINAL_GITHUB/Proyecto_unsupervised_learning")
+
+```
+
+## Importación de Datos
+```{r}
 
 df <- read.csv("nba_players_2023_clustering (1).csv")
+```
+
+
+
+### Transformación del Dataset 
+#### Adición de Variables (Columnas)
+
+Se sugiere agregar una columna que describa la región a la que pertenece cada jugador, así como un campo que indique la habilidad del jugador (nivel de jugador) en función del rendimiento por minuto.
+```{r}
+
+
 
 df <- df %>%
   mutate(region = case_when(
@@ -68,9 +91,10 @@ df <- df %>%
 
 df$nivel_jugador <- factor(df$nivel_jugador,
                            levels = c("Muy bajo", "Bajo", "Promedio", "Alto", "Élite"))
+```
 
-  
-summary(df)
+A su vez, se creó una columna que indica la conferencia a la que pertenece cada equipo.
+```{r}
 
 equipos <- c(
   "Orlando Magic", "Milwaukee Bucks", "Washington Wizards", "Phoenix Suns",
@@ -104,10 +128,17 @@ df <- df %>%
     TRUE ~ NA_character_  # Por si hay algún equipo que no esté listado
   ))
 
-```
-## Exploracion de datos 
 
-Preguntas de exploracion: 
+```
+
+# **Análisis Exploratorio** 
+
+```{r}
+table(df$conferencia)
+```
+
+
+#### Preguntas de exploración: 
 
 a. Cuál es la distribución de las variables. 
 
@@ -121,8 +152,11 @@ e. cuales son los jugadores en el nivel elite
 
 f. como esta distribuido el rendimiento por minuto por conferencia 
 
+g. ¿Qué equipo tiene a los jugadores más jóvenes?
+
+h. ¿Qué equipo contiene a los jugadores con mayores puntos por juego?
+
 ```{r Exploracion de datos, include=TRUE }
-  
   
 str(df)
 
@@ -303,6 +337,26 @@ f) Vemos que la distribucion segun el sexo mantienen los comportamientos antes m
 g) La casa que tiene la persona no tiene relacion con el monto del credito. 
 
 G2) El tipo de la cuenta no tiene relacion con el monto del credito  
+
+
+
+g. ¿Qué equipo tiene a los jugadores más jóvenes en promedio?
+
+```{r}
+df %>% group_by(team) %>% summarise(media_edad = mean(age)) %>% arrange(media_edad)
+```
+El equipo con jugadores más jóvenes es Detroit Pistons, con una media de edad de 20 años.
+
+h. ¿Qué equipo contiene a los jugadores con mayores puntos por juego?
+
+```{r}
+df %>% group_by(team) %>% summarise(suma_puntos = sum(points_per_game)) %>% arrange(desc(suma_puntos))
+
+```
+Phonessojdso
+```{r}
+table(df$team)
+```
 
 ## Clusterizacion. 
 
