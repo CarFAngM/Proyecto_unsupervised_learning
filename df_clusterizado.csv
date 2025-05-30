@@ -1,0 +1,51 @@
+"name","age","minutes_played_per_game","rebounds_per_game","assists_per_game","points_per_game","team","nationality","region","rendimiento_por_minuto","nivel_jugador","conferencia","cluster_k"
+"Admiral Schofield",25,12.2,1.7,0.8,4.2,"Orlando Magic","USA","America del Norte",0.549180327868853,"Muy bajo","Eastern Conference",1
+"Damian Lillard",32,36.3,4.8,7.3,32.2,"Milwaukee Bucks","USA","America del Norte",1.22038567493113,"Elite","Eastern Conference",3
+"Daniel Gafford",24,20.6,5.6,1.1,9,"Washington Wizards","USA","America del Norte",0.762135922330097,"Promedio","Eastern Conference",6
+"Devin Booker",26,34.6,4.5,5.5,27.8,"Phoenix Suns","USA","America del Norte",1.09248554913295,"Alto","Western Conference",2
+"Dru Smith",25,9.1,1.5,1.7,3.3,"Miami Heat","USA","America del Norte",0.714285714285714,"Bajo","Eastern Conference",1
+"Eugene Omoruyi",25,11.8,2.3,0.5,4.9,"Milwaukee Bucks","Greece","Europa",0.652542372881356,"Bajo","Eastern Conference",1
+"Giannis Antetokounmpo",28,32.1,11.8,5.7,31.1,"Philadelphia 76ers","Cameroon","Africa",1.51401869158879,"Elite","Eastern Conference",4
+"Immanuel Quickley",23,28.9,4.2,3.4,14.9,"New York Knicks","USA","America del Norte",0.778546712802768,"Promedio","Eastern Conference",6
+"Jae Crowder",32,18.9,3.8,1.5,6.9,"Sacramento Kings","USA","America del Norte",0.645502645502645,"Bajo","Western Conference",5
+"Jaylen Brown",26,35.9,6.9,3.5,26.6,"Washington Wizards","Nigeria","Africa",1.03064066852368,"Alto","Eastern Conference",4
+"Jayson Tatum",24,36.9,8.8,4.6,30.1,"Toronto Raptors","USA","America del Norte",1.17886178861789,"Alto","Eastern Conference",4
+"Jericho Sims",24,15.6,4.7,0.5,3.4,"Milwaukee Bucks","USA","America del Norte",0.551282051282051,"Muy bajo","Eastern Conference",1
+"Joe Ingles",35,22.7,2.8,3.3,6.9,"Boston Celtics","USA","America del Norte",0.572687224669604,"Muy bajo","Eastern Conference",5
+"Joel Embiid",28,34.6,10.2,4.2,33.1,"Boston Celtics","USA","America del Norte",1.3728323699422,"Elite","Eastern Conference",4
+"Kenneth Lofton Jr.",20,7.3,2.1,0.8,5,"New York Knicks","USA","America del Norte",1.08219178082192,"Alto","Eastern Conference",1
+"Kevin Durant",34,35.6,6.7,5,29.1,"Orlando Magic","Australia","Oceania",1.14606741573034,"Alto","Eastern Conference",3
+"Kyrie Irving",30,37.4,5.1,5.5,27.1,"Utah Jazz","USA","America del Norte",1.00802139037433,"Alto","Western Conference",3
+"LeBron James",38,35.5,8.3,6.8,28.9,"Phoenix Suns","USA","America del Norte",1.23943661971831,"Elite","Western Conference",3
+"Luka Doncic",23,36.2,8.6,8,32.4,"Dallas Mavericks","USA/Australia","America del Norte / Oceania",1.35359116022099,"Elite","Western Conference",2
+"Mike Muscala",31,14.5,3.1,0.9,6.2,"Los Angeles Lakers","USA","America del Norte",0.703448275862069,"Bajo","Western Conference",5
+"Nikola Jokic",27,33.7,11.8,9.8,24.5,"Oklahoma City Thunder","USA","America del Norte",1.36795252225519,"Elite","Western Conference",2
+"Shai Gilgeous-Alexander",24,35.5,4.8,5.5,31.4,"Oklahoma City Thunder","Canada","America del Norte",1.17464788732394,"Alto","Western Conference",2
+"Stephen Curry",34,34.7,6.1,6.3,29.4,"Golden State Warriors","USA","America del Norte",1.20461095100865,"Elite","Western Conference",3
+"Tony Bradley",25,2.8,0.9,0.1,1.6,"Dallas Mavericks","USA","America del Norte",0.928571428571429,"Promedio","Western Conference",1
+"Trae Young",24,34.8,3,10.2,26.2,"Atlanta Hawks","USA","America del Norte",1.13218390804598,"Alto","Eastern Conference",2
+"Patrick Williams",21,28.3,4,1.2,10.2,"Chicago Bulls","USA","America del Norte",0.54416961130742,"Muy bajo","Eastern Conference",6
+"Damion Lee",30,20.4,3,1.3,8.2,"Phoenix Suns","USA","America del Norte",0.612745098039216,"Bajo","Western Conference",5
+"James Bouknight",22,15.1,2.1,1.2,5.6,"Charlotte Hornets","USA","America del Norte",0.589403973509934,"Muy bajo","Eastern Conference",1
+"Keegan Murray",22,29.8,4.6,1.2,12.2,"Sacramento Kings","USA","America del Norte",0.604026845637584,"Bajo","Western Conference",6
+"Lauri Markkanen",25,34.4,8.6,1.9,25.6,"Utah Jazz","Finland","Europa",1.04941860465116,"Alto","Western Conference",4
+"Quentin Grimes",22,29.9,3.2,2.1,11.3,"New York Knicks","USA","America del Norte",0.555183946488294,"Muy bajo","Eastern Conference",6
+"Jaylin Williams",20,18.7,4.9,1.6,5.9,"Oklahoma City Thunder","USA","America del Norte",0.663101604278075,"Bajo","Western Conference",6
+"Victor Oladipo",30,26.3,3,3.5,10.7,"Miami Heat","USA","America del Norte",0.653992395437262,"Bajo","Eastern Conference",5
+"Tim Hardaway Jr.",30,30.3,3.5,1.8,14.4,"Dallas Mavericks","USA","America del Norte",0.65016501650165,"Bajo","Western Conference",5
+"David Roddy",21,18,2.8,0.8,6.7,"Memphis Grizzlies","USA","America del Norte",0.572222222222222,"Muy bajo","Western Conference",1
+"John Wall",32,22.2,2.7,5.2,11.4,"Los Angeles Clippers","USA","America del Norte",0.869369369369369,"Promedio","Western Conference",5
+"Grant Williams",24,25.9,4.6,1.7,8.1,"Dallas Mavericks","USA","America del Norte",0.555984555984556,"Muy bajo","Western Conference",6
+"De'Andre Hunter",25,31.7,4.2,1.4,15.4,"Atlanta Hawks","USA","America del Norte",0.662460567823344,"Bajo","Eastern Conference",6
+"Edmond Sumner",27,13.9,1.5,1.3,7.1,"Brooklyn Nets","USA","America del Norte",0.712230215827338,"Bajo","Eastern Conference",1
+"Jaden Ivey",20,31.1,3.9,5.2,16.3,"Detroit Pistons","USA","America del Norte",0.816720257234727,"Promedio","Eastern Conference",6
+"De'Anthony Melton",24,27.9,4.1,2.6,10.1,"Philadelphia 76ers","USA","America del Norte",0.602150537634409,"Bajo","Eastern Conference",6
+"Devin Vassell",22,31,3.9,3.6,18.5,"San Antonio Spurs","USA","America del Norte",0.838709677419355,"Promedio","Western Conference",6
+"Theo Pinson",27,8.1,1.6,1.2,2.4,"Dallas Mavericks","USA","America del Norte",0.641975308641975,"Bajo","Western Conference",1
+"Dwight Powell",31,19.2,4.1,0.9,6.7,"Dallas Mavericks","Canada","America del Norte",0.609375,"Bajo","Western Conference",5
+"Andre Drummond",29,12.7,6.6,0.5,6,"Chicago Bulls","USA","America del Norte",1.03149606299213,"Alto","Eastern Conference",1
+"Oshae Brissett",24,16.7,3.4,0.7,6.1,"Boston Celtics","Canada","America del Norte",0.610778443113772,"Bajo","Eastern Conference",1
+"Yuta Watanabe",28,16,2.4,0.8,5.6,"Phoenix Suns","Japan","Asia",0.55,"Muy bajo","Western Conference",5
+"Austin Reaves",24,28.8,3,3.4,13,"Los Angeles Lakers","USA","America del Norte",0.673611111111111,"Bajo","Western Conference",6
+"Jalen Johnson",21,14.9,4,1.2,5.6,"Atlanta Hawks","USA","America del Norte",0.724832214765101,"Bajo","Eastern Conference",1
+"Keita Bates-Diop",27,21.7,3.7,1.5,9.7,"Phoenix Suns","USA","America del Norte",0.686635944700461,"Bajo","Western Conference",5

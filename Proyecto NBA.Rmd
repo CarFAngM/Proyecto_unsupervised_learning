@@ -43,8 +43,8 @@ library(cluster)
 
 ```{r}
 
-#setwd("C:/Users/carlo/OneDrive/Escritorio/data mining/Proyecto_2/Proyecto_unsupervised_learning")
-setwd("C:/Users/josep/OneDrive - UVG/SEMESTRE V/Data Mining/PROYECTO_FINAL_GITHUB/Proyecto_unsupervised_learning")
+setwd("C:/Users/carlo/OneDrive/Escritorio/data mining/Proyecto_2/Proyecto_unsupervised_learning")
+#setwd("C:/Users/josep/OneDrive - UVG/SEMESTRE V/Data Mining/PROYECTO_FINAL_GITHUB/Proyecto_unsupervised_learning")
 
 ```
 
@@ -87,7 +87,7 @@ df <- df %>%
 
 df <- df %>%
   mutate(nivel_jugador = case_when(
-    rendimiento_por_minuto >= 1.2 ~ "Élite",
+    rendimiento_por_minuto >= 1.2 ~ "Elite",
     rendimiento_por_minuto >= 1.0 ~ "Alto",
     rendimiento_por_minuto >= 0.75 ~ "Promedio",
     rendimiento_por_minuto >= 0.6 ~ "Bajo",
@@ -95,7 +95,7 @@ df <- df %>%
   ))
 
 df$nivel_jugador <- factor(df$nivel_jugador,
-                           levels = c("Muy bajo", "Bajo", "Promedio", "Alto", "Élite"))
+                           levels = c("Muy bajo", "Bajo", "Promedio", "Alto", "Elite"))
 ```
 
 A su vez, se creó una columna que indica la conferencia a la que pertenece cada equipo.
@@ -161,7 +161,6 @@ g.  ¿Qué equipo tiene a los jugadores más jóvenes?
 
 h.  ¿Qué equipo contiene a los jugadores con mayores puntos por juego?
 
-
 ```{r Exploracion de datos, include=TRUE }
   
 str(df)
@@ -170,8 +169,6 @@ glimpse(df)
 
 summary(df)
 ```
-
-
 
 ```{r}
 # Distribucion de edad 
@@ -196,7 +193,7 @@ ggplot(df, aes(x = minutes_played_per_game)) +
 ggplot(df, aes(x = "", y = minutes_played_per_game)) +
   geom_boxplot(fill = "yellow", color = "black") +
   theme_minimal() +
-  labs(title = "Distribución de minutos por partido", 
+  labs(title = "Distribucion de minutos por partido", 
        y = "Minutos por partido", 
        x = "") +
   coord_cartesian(ylim = c(0, max(df$minutes_played_per_game, na.rm = TRUE)))
@@ -228,9 +225,32 @@ ggplot(df, aes(x = points_per_game)) +
   labs(title = "Distribucion de puntos por partido", 
        y = "Frecuencia", 
        x = "puntos por partido")
+
+# Notese que en este caso hay bastantes outliers. 
+ggplot(df, aes(y= rebounds_per_game)) +
+  geom_boxplot(bins = 10, fill = "green", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribucion de puntos por partido", 
+       y = "Frecuencia", 
+       x = "rebotes por partido")
+
+
+
+
+
+quantile(df$rebounds_per_game, 0.75) + (1.5 * IQR(df$rebounds_per_game))
+
+
+# A partir de 8.125 rebotes por minutos ya se consideran datos atipicos por lo tanto 
+
+print(filter(df, rebounds_per_game > 8.125))
+
+# En este caso decidimos no eliminarlos porque de por si ya tenemos muy pocos datos. 
+
 ```
 
-#### pregunta 2. 
+#### pregunta 2.
+
 ```{r}
 
 
@@ -239,7 +259,7 @@ ggplot(df, aes(x = minutes_played_per_game, y = points_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "lm", color = "blue") +
   theme_minimal() +
-  labs(title = "Relación entre minutos y puntos por partido",
+  labs(title = "Relacion entre minutos y puntos por partido",
        x = "Minutos por partido",
        y = "Puntos por partido")
 
@@ -248,7 +268,7 @@ ggplot(df, aes(x = minutes_played_per_game, y = assists_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "lm", color = "purple") +
   theme_minimal() +
-  labs(title = "Relación entre minutos y asistencias por partido",
+  labs(title = "Relacion entre minutos y asistencias por partido",
        x = "Minutos por partido",
        y = "Asistencias por partido")
 
@@ -257,7 +277,7 @@ ggplot(df, aes(x = minutes_played_per_game, y = rebounds_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "lm", color = "green") +
   theme_minimal() +
-  labs(title = "Relación entre minutos y rebotes por partido",
+  labs(title = "Relacion entre minutos y rebotes por partido",
        x = "Minutos por partido",
        y = "Rebotes por partido")
 
@@ -265,8 +285,7 @@ df_numeric <- df %>% select(where(is.numeric))
 
 ```
 
-
-#### Pregunta 3: 
+#### Pregunta 3:
 
 ```{r}
 
@@ -275,25 +294,26 @@ ggplot(df, aes(x = age, y = points_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   theme_minimal() +
-  labs(title = "Relación entre edad y puntos por partido",
+  labs(title = "Relacion entre edad y puntos por partido",
        x = "Edad", y = "Puntos por partido")
 
 ggplot(df, aes(x = age, y = assists_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "darkgreen") +
   theme_minimal() +
-  labs(title = "Relación entre edad y asistencias por partido",
+  labs(title = "Relacion entre edad y asistencias por partido",
        x = "Edad", y = "Asistencias por partido")
 
 ggplot(df, aes(x = age, y = rebounds_per_game)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "purple") +
   theme_minimal() +
-  labs(title = "Relación entre edad y rebotes por partido",
+  labs(title = "Relacion entre edad y rebotes por partido",
        x = "Edad", y = "Rebotes por partido")
 ```
 
-#### Pregunta 4. 
+#### Pregunta 4.
+
 ```{r}
 
 
@@ -307,7 +327,7 @@ ggplot(df, aes(x = nivel_jugador, fill = nivel_jugador)) +
     "Alto" = "#91cf60",        
     "Élite" = "#1a9850"        
   )) +
-  labs(title = "Distribución de niveles de jugadores por eficiencia",
+  labs(title = "Distribucion de niveles de jugadores por eficiencia",
        x = "Nivel de jugador", y = "Cantidad de jugadores") +
   theme_minimal()
 
@@ -316,7 +336,8 @@ ggplot(df, aes(x = nivel_jugador, fill = nivel_jugador)) +
 df_elite = df %>% filter(nivel_jugador == "Élite")
 ```
 
-#### Otras preguntas: 
+#### Otras preguntas:
+
 ```{r}
 
 
@@ -340,16 +361,18 @@ corrplot(cor_matrix, method = "color", type = "upper",
          col = colorRampPalette(c("red", "white", "blue"))(200))
 
 ```
+
 ```{r}
 
 summary(df)
 
 ```
+
 #### **Respuestas textuales (analisis de graficas):**
 
 a)  Distribuciones
 
-Vemos que la distibucion de la edad es variada con un sesgo en la derecha. El jugador más joven tiene 20 y el mayor, 38. La media de edad es de 26, pero una métrica con mayor representatividad sería la mediana, que presenta una edad "central" de 25 años. 
+Vemos que la distibucion de la edad es variada con un sesgo en la derecha. El jugador más joven tiene 20 y el mayor, 38. La media de edad es de 26, pero una métrica con mayor representatividad sería la mediana, que presenta una edad "central" de 25 años.
 
 ```{r}
 mode_info <- df %>%
@@ -359,22 +382,18 @@ mode_info <- df %>%
 
 print(mode_info)
 ```
+
 La edad más común es de 25 años, ya que 9 jugadores tienen esa edad.
 
 #### Correlaciones Relevantes
-Las variables que presentan mayor relación entre sí son (en orden descendente):
-- minutes_played_per_game x points_per_game: 0.89. Esto implica que entre más minutos participe un jugador, mayor puntos anotará.
-- points_per_game x rendimiento_por_minuto: 0.84. Esto era de esperarse porque el rendimiento se calcula con base en los puntos.
+
+Las variables que presentan mayor relación entre sí son (en orden descendente): - minutes_played_per_game x points_per_game: 0.89. Esto implica que entre más minutos participe un jugador, mayor puntos anotará. - points_per_game x rendimiento_por_minuto: 0.84. Esto era de esperarse porque el rendimiento se calcula con base en los puntos.
 
 Las demás relaciones con rendimiento_por_minuto se obvian porque presentan multicolinealidad, al igual que la mencionada anteriormente.
 
-
-- assists_per_game x points_per_game: 0.82.
-- minutes_played_per_game x assists_per_game: 0.74. Una relación relativamente fuerte y positiva. Un jugador que juega durante más tiempo suele hacer más asistencias.
-- rebounds_per_game x points_per_game: 0.72. A diferencia de las otras relaciones, esta no era de esperarse, pero se considera relevante para un análisis ulterior.
-
-
-
+-   assists_per_game x points_per_game: 0.82.
+-   minutes_played_per_game x assists_per_game: 0.74. Una relación relativamente fuerte y positiva. Un jugador que juega durante más tiempo suele hacer más asistencias.
+-   rebounds_per_game x points_per_game: 0.72. A diferencia de las otras relaciones, esta no era de esperarse, pero se considera relevante para un análisis ulterior.
 
 g.  ¿Qué equipo tiene a los jugadores más jóvenes en promedio?
 
@@ -390,8 +409,6 @@ h.  ¿Qué equipo contiene a los jugadores con mayores puntos por juego?
 df %>% group_by(team) %>% summarise(suma_puntos = sum(points_per_game)) %>% arrange(desc(suma_puntos))
 
 ```
-
-
 
 ```{r}
 table(df$team)
@@ -475,30 +492,69 @@ segment_customers_k2 = cbind(df, cluster_k)
 
 df = cbind(df, cluster_k)
 
+df_scaled = cbind(df_scaled, cluster_k)
+
 
 count(segment_customers_k, cluster_k)
 
 
 
-Resumen_K = segment_customers_k %>% 
-  group_by(cluster_k) %>% 
-  summarise_all(funs(mean(.)))
+Resumen_K <- df %>%
+  group_by(cluster_k) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
 
 Resumen_K
+
+Resumen_K_long <- Resumen_K %>%
+  pivot_longer(
+    cols = -cluster_k,
+    names_to = "nombre_variable",
+    values_to = "valor"
+  )
+
+
+
+ggplot(Resumen_K_long, aes(x = nombre_variable, y = valor, fill = nombre_variable )) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~ cluster_k, scales = "free_y") +
+  labs(
+    title = "Estadísticas por Cluster",
+    x = "Variable y Estadística",
+    y = "Valor"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 clusplot(segment_customers_k,segment_customers_k$cluster_k,shape=TRUE,color=TRUE,labels=2)
 
 write.csv(df, "df_clusterizado.csv", row.names = FALSE, fileEncoding = "latin1")
 
+write.csv(df_scaled, "df_scaled.csv", row.names = FALSE, fileEncoding = "latin1")
+
+df_scaled
+
+
 
 ```
 
-Clúster 1 Jóvenes con empleo calificado y pocos ahorros Este grupo se caracteriza por una edad promedio baja y una duración de crédito relativamente alta. Está compuesto mayoritariamente por mujeres, aunque también hay hombres. Predominan los empleos calificados y todas las personas arriendan vivienda. Los niveles de ahorro son reducidos y no suelen contar con productos financieros sólidos. Los créditos se destinan principalmente a la compra de automóviles, muebles y equipos. Son personas jóvenes, activas laboralmente, que usan el crédito para consumo, pero aún no han consolidado una base financiera fuerte.
+Cluster 1: Jugador joven de bajo rendimiento
+Este grupo está compuesto por jugadores jóvenes, con una edad promedio de aproximadamente 24 años. Su tiempo en cancha es reducido y su rendimiento por minuto es bajo, lo que indica una participación limitada y poco impacto en el juego.
 
-Clúster 2 Mujeres propietarias con perfil financiero intermedio Este grupo está compuesto exclusivamente por mujeres, con una edad intermedia y una duración de crédito similar a la del Clúster 1. Predomina la vivienda propia y los trabajos calificados. Los niveles de ahorro son moderados, aunque algunas aún presentan bajos saldos en cuentas corrientes. Solicitan créditos principalmente para muebles, automóviles y educación. Representan a mujeres financieramente activas con cierta estabilidad, que utilizan el crédito para mejorar su calidad de vida y educación.
+Cluster 2: Jugador con alta actividad y alto rendimiento
+En este grupo se encuentran jugadores también jóvenes, con una edad cercana a los 25 años. Se destacan por su alta actividad en el campo, reflejada en muchas asistencias y puntos, así como un rendimiento general elevado.
 
-Clúster 3 Hombres profesionalizados con buen respaldo financiero Este grupo está conformado exclusivamente por hombres, con una edad media-alta y duración de crédito elevada. Todos tienen empleos altamente calificados y la mayoría son propietarios de vivienda. Su perfil financiero es sólido, con buena distribución entre cuentas de ahorro y cuentas corrientes. Utilizan el crédito principalmente para la compra de automóviles y muebles. Son hombres con empleo formal, educación alta y finanzas equilibradas, que usan el crédito para consumo planeado.
+Cluster 3: Jugador experimentado con alto rendimiento
+Este grupo lo conforman jugadores con mayor edad, alrededor de los 33 años. A pesar de su veteranía, tienen una presencia significativa en el juego con muchos minutos disputados, un buen rendimiento y un número considerable de asistencias.
 
-Clúster 4 Hombres trabajadores con enfoque empresarial y bajo ahorro Este grupo está conformado por hombres con la mayor edad promedio entre los clústeres y plazos de crédito altos. Tienen empleos calificados y la mayoría posee vivienda propia. A pesar de su estabilidad laboral y habitacional, presentan bajos niveles de ahorro. El crédito se utiliza mayormente con fines empresariales y también para la compra de muebles y equipos. Representan a hombres trabajadores, posiblemente autónomos o emprendedores, con orientación a la inversión, pero baja liquidez.
+Cluster 4: Jugador estrella con alto impacto global
+Aquí se agrupan jugadores de edad media, aproximadamente 26 años. Son los que más sobresalen en el juego, liderando en rebotes, asistencias y puntos, lo cual evidencia un impacto global muy alto en el rendimiento del equipo.
 
-Clúster 5 Hombres de perfil vulnerable con empleo informal y poca estabilidad Este grupo está compuesto por hombres de edad media-alta, con la menor duración de crédito. Tienen empleos no calificados o inestables y viven en condiciones habitacionales precarias. Aunque la mayoría tiene cuentas de ahorro, estas suelen tener bajos saldos. El crédito se destina principalmente al consumo, como automóviles, muebles y educación. Representan a hombres con menor estabilidad laboral y financiera, que acceden a créditos a pesar de su alto riesgo crediticio.
+Cluster 5: Jugador veterano de rol moderado
+Este cluster incluye jugadores mayores, cerca de los 30 años. Su tiempo en cancha es moderado y su rendimiento se considera medio-bajo, cumpliendo un rol menos protagónico dentro del equipo.
+
+Cluster 6: Jugador joven de rol de soporte
+Este grupo está formado por jugadores muy jóvenes, con una edad aproximada de 22 años. Aunque tienen minutos medios en cancha, sus estadísticas generales y rendimiento son modestos, lo que sugiere un papel de apoyo dentro del equipo.
+
+
