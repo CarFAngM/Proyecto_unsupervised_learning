@@ -361,7 +361,7 @@ corrplot(cor_matrix, method = "color", type = "upper",
          col = colorRampPalette(c("red", "white", "blue"))(200))
 
 ```
-
+Vemos que el rendimiento por minuto de la conferencia este y oeste es igual demostrando que las conferencias tienen casi el mismo nivel. Sin embargo, los mejores jugadores se encuentran en la este. 
 ```{r}
 
 summary(df)
@@ -406,10 +406,14 @@ El equipo con jugadores más jóvenes es Detroit Pistons, con una media de edad 
 h.  ¿Qué equipo contiene a los jugadores con mayores puntos por juego?
 
 ```{r}
-df %>% group_by(team) %>% summarise(suma_puntos = sum(points_per_game)) %>% arrange(desc(suma_puntos))
+df %>%
+  group_by(team) %>%
+  summarise(suma_puntos = sum(points_per_game, na.rm = TRUE)) %>%
+  arrange(desc(suma_puntos)) %>%
+  slice_max(suma_puntos, n = 1)
 
 ```
-
+El equipo con la mayor suma de puntos por partido es: Phoenix Suns, con un total de 80.2 puntos por partido acumulados entre sus jugadores.
 ```{r}
 table(df$team)
 ```
@@ -539,22 +543,21 @@ df_scaled
 
 ```
 
-Cluster 1: Jugador joven de bajo rendimiento
+Cluster 1: Rookie Invisible
 Este grupo está compuesto por jugadores jóvenes, con una edad promedio de aproximadamente 24 años. Su tiempo en cancha es reducido y su rendimiento por minuto es bajo, lo que indica una participación limitada y poco impacto en el juego.
 
-Cluster 2: Jugador con alta actividad y alto rendimiento
+Cluster 2: Explosivo Emergente
 En este grupo se encuentran jugadores también jóvenes, con una edad cercana a los 25 años. Se destacan por su alta actividad en el campo, reflejada en muchas asistencias y puntos, así como un rendimiento general elevado.
 
-Cluster 3: Jugador experimentado con alto rendimiento
+Cluster 3: Leyenda Activa
 Este grupo lo conforman jugadores con mayor edad, alrededor de los 33 años. A pesar de su veteranía, tienen una presencia significativa en el juego con muchos minutos disputados, un buen rendimiento y un número considerable de asistencias.
 
-Cluster 4: Jugador estrella con alto impacto global
+Cluster 4: Alpha del Juego
 Aquí se agrupan jugadores de edad media, aproximadamente 26 años. Son los que más sobresalen en el juego, liderando en rebotes, asistencias y puntos, lo cual evidencia un impacto global muy alto en el rendimiento del equipo.
 
-Cluster 5: Jugador veterano de rol moderado
+Cluster 5: Pieza Silenciosa
 Este cluster incluye jugadores mayores, cerca de los 30 años. Su tiempo en cancha es moderado y su rendimiento se considera medio-bajo, cumpliendo un rol menos protagónico dentro del equipo.
 
-Cluster 6: Jugador joven de rol de soporte
+Cluster 6: Relevo Estratégico
 Este grupo está formado por jugadores muy jóvenes, con una edad aproximada de 22 años. Aunque tienen minutos medios en cancha, sus estadísticas generales y rendimiento son modestos, lo que sugiere un papel de apoyo dentro del equipo.
-
 
