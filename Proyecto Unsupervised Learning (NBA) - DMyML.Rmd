@@ -1,0 +1,785 @@
+---
+title: "Proyecto final - Aprendizaje no supervisado (NBA)"
+author: "Carlos Angel, José Donado, Diego Monroy, Carlos Aldana y Marco Carbajal"
+date: "2025-05-25"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# **Introducción**
+
+Este documento presenta un análisis de un dataset con información
+(métricas de desempeño y características cualitativas) acerca de 50
+jugadores de la NBA. El objetivo es explorar estos datos y aplicarles
+clusterización.
+
+# **Transformación de datos**
+
+### **1. Librerías**
+
+Estas son las librerías que utiliza nuestro programa:
+
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(fastDummies)
+library(psych)
+library(fmsb)  
+library(corrplot)
+library(tidyr)
+library(broom)
+library(sigr)
+library(ggplot2)
+library(WVPlots)
+library(Metrics)
+library(e1071)
+library(weights)
+library(corrplot)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(e1071)
+library(readxl)
+library(writexl)
+library(lubridate)
+library(arules)
+library(purrr)
+library(cluster)
+library(dendextend)
+```
+
+### **2. Espacio de trabajo**
+
+```{r wd}
+#setwd("C:/Users/carlo/OneDrive/Escritorio/data mining/Proyecto_2/Proyecto_unsupervised_learning")
+#setwd("C:/Users/josep/OneDrive - UVG/SEMESTRE V/Data Mining/PROYECTO_FINAL_GITHUB/Proyecto_unsupervised_learning")
+#setwd("C:/Users/dmonr/Downloads")
+#setwd("C:/Users/Carlo/OneDrive/Escritorio/DM/Proyecto02")
+#setwd("C:/Users/carba/OneDrive/Documents/AA UVG/Año 3, Ciclo 1/Data mining and machine learning/Proyecto final")
+```
+
+### **3. Importar los datos**
+
+```{r data}
+df <- read.csv("nba_players_2023_clustering (1).csv")
+```
+
+### **4. Adición de variables (columnas)**
+
+Se sugiere agregar una columna que describa la región a la que pertenece
+cada jugador, así como un campo que indique la habilidad del jugador
+(nivel de jugador) en función del rendimiento por minuto.
+
+```{r transformacion_1}
+df <- df %>%
+  mutate(region = case_when(
+    nationality == "USA" ~ "America del Norte",
+    nationality == "Canada" ~ "America del Norte",
+    nationality == "Mexico" ~ "America del Norte",
+    nationality == "Australia" ~ "Oceania",
+    nationality == "USA/Australia" ~ "America del Norte / Oceania",
+    nationality == "Japan" ~ "Asia",
+    nationality == "Finland" ~ "Europa",
+    nationality == "Greece" ~ "Europa",
+    nationality == "Nigeria" ~ "Africa",
+    nationality == "Cameroon" ~ "Africa",
+    TRUE ~ "Otra"))
+
+df <- df %>%
+  mutate(rendimiento_por_minuto = (points_per_game + 
+                                    assists_per_game + 
+                                    rebounds_per_game) / minutes_played_per_game)
+
+df <- df %>%
+  mutate(nivel_jugador = case_when(
+    rendimiento_por_minuto >= 1.2 ~ "Elite",
+    rendimiento_por_minuto >= 1.0 ~ "Alto",
+    rendimiento_por_minuto >= 0.75 ~ "Promedio",
+    rendimiento_por_minuto >= 0.6 ~ "Bajo",
+    TRUE ~ "Muy bajo"
+  ))
+
+df$nivel_jugador <- factor(df$nivel_jugador,
+                           levels = c("Muy bajo", "Bajo", "Promedio", "Alto", "Elite"))
+```
+
+Además, se creó una columna que indica la conferencia a la que pertenece
+cada equipo.
+
+```{r transformacion_2}
+
+equipos <- c(
+  "Orlando Magic", "Milwaukee Bucks", "Washington Wizards", "Phoenix Suns",
+  "Miami Heat", "Milwaukee Bucks", "Philadelphia 76ers", "New York Knicks",
+  "Sacramento Kings", "Washington Wizards", "Toronto Raptors", "Milwaukee Bucks",
+  "Boston Celtics", "Boston Celtics", "New York Knicks", "Orlando Magic",
+  "Utah Jazz", "Phoenix Suns", "Dallas Mavericks", "Los Angeles Lakers",
+  "Oklahoma City Thunder", "Oklahoma City Thunder", "Golden State Warriors",
+  "Dallas Mavericks", "Atlanta Hawks", "Chicago Bulls", "Phoenix Suns",
+  "Charlotte Hornets", "Sacramento Kings", "Utah Jazz", "New York Knicks",
+  "Oklahoma City Thunder", "Miami Heat", "Dallas Mavericks", "Memphis Grizzlies",
+  "Los Angeles Clippers", "Dallas Mavericks", "Atlanta Hawks", "Brooklyn Nets",
+  "Detroit Pistons", "Philadelphia 76ers", "San Antonio Spurs", "Dallas Mavericks",
+  "Dallas Mavericks", "Chicago Bulls", "Boston Celtics", "Phoenix Suns",
+  "Los Angeles Lakers", "Atlanta Hawks", "Phoenix Suns")
+
+# Crear columna conferencia
+df <- df %>%
+  mutate(conferencia = case_when(
+    team %in% c("Orlando Magic", "Milwaukee Bucks", "Washington Wizards",
+                "Miami Heat", "Philadelphia 76ers", "New York Knicks",
+                "Toronto Raptors", "Boston Celtics", "Atlanta Hawks",
+                "Chicago Bulls", "Charlotte Hornets", "Brooklyn Nets",
+                "Detroit Pistons") ~ "Eastern Conference",
+    team %in% c("Phoenix Suns", "Sacramento Kings", "Utah Jazz",
+                "Dallas Mavericks", "Los Angeles Lakers", "Oklahoma City Thunder",
+                "Golden State Warriors", "Memphis Grizzlies",
+                "Los Angeles Clippers", "San Antonio Spurs") ~ "Western Conference",
+    TRUE ~ NA_character_  # Por si hay algún equipo que no esté listado
+  ))
+
+write.csv(df, "NBA_data.csv", row.names = FALSE)
+```
+
+De esta forma, la cantidad de jugadores por conferencia quedó
+distribuida así:
+
+```{r Distribucion_conferencia}
+table(df$conferencia)
+```
+
+La Eastern Conference cuenta con 26 jugadores, mientras que la Western
+Conference cuenta con 24 jugadores.
+
+# **Exploración del dataset**
+
+Las siguientes preguntas de exploración tienen como objetivo entender a
+fondo el dataset con el que vamos a trabajar:
+
+a.  **¿Qué tipo de datos contiene?**
+
+```{r Exploracion_a, include=TRUE }
+  
+str(df)
+
+glimpse(df)
+
+summary(df)
+```
+
+El dataset analizado contiene información sobre 50 jugadores de la NBA,
+y está compuesto por 12 variables que combinan distintos tipos de datos.
+En primer lugar, incluye datos de tipo **numérico**, como la edad de los
+jugadores (*age*), los minutos jugados por partido
+(*minutes_played_per_game*), los rebotes (*rebounds_per_game*),
+asistencias (*assists_per_game*), puntos (*points_per_game*) y una
+métrica de rendimiento por minuto (*rendimiento_por_minuto*). Estas
+variables permiten realizar análisis cuantitativos sobre el desempeño
+individual de los jugadores. Por otro lado, se encuentran datos de tipo
+**carácter** como el nombre del jugador (*name*), el equipo (*team*), la
+nacionalidad (*nationality*), la región geográfica (*region*) y la
+conferencia (*conferencia*), que son útiles para identificar o agrupar a
+los jugadores según aspectos contextuales. Además, se incluye una
+variable de tipo **factor** categórico, *nivel_jugador*, que clasifica a
+los jugadores en categorías como “Muy bajo”, “Bajo”, “Promedio”, “Alto”
+y “Elite”, lo cual es relevante para segmentar el talento o el impacto
+de los jugadores.
+
+b.  **¿Cuál es la distribución de las variables?**
+
+    ```{r Exploracion_b 1}
+
+    # 1. Detectar variables numéricas y gráficar histogramas
+    numeric_vars <- names(df)[sapply(df, is.numeric)]
+    for (var in numeric_vars) {
+      print(
+        ggplot(df, aes_string(x = var)) +
+          geom_histogram(bins = 20, fill = "steelblue", color = "black") +
+          theme_minimal() +
+          labs(
+            title = paste("Distribución de", var),
+            x     = var,
+            y     = "Frecuencia"
+          )
+      )
+    }
+    ```
+
+    -   **Distribución de *age***
+
+    La mayoría de jugadores tiene entre 23 y 26 años, con un pico
+    alrededor de 24--25. Hay pocos casos menores de 21 años y algunos
+    mayores de 30 años, hasta los 38. La curva muestra ligera asimetría
+    derecha por esos valores más altos.
+
+    -   **Distribución de *minutes_played_per_game***
+
+    Se observa un agrupamiento en dos zonas: muchos jugadores rondan los
+    30--35 minutos, y otro grupo alrededor de 12--20 minutos. Hay pocos
+    valores extremos muy bajos (\<5 min) o muy altos (cercanos a 40
+    min). La forma sugiere una bi/multimodalidad por roles titulares vs.
+    suplentes.
+
+    -   **Distribución de *rebounds_per_game***
+
+    La mayoría anota entre 2 y 5 rebotes por partido, con frecuencia
+    máxima cerca de 3--4. Aparecen pocos que superan los 7 rebotes y
+    valores aislados alrededor de 10--12. La distribución está sesgada a
+    la derecha por esos grandes reboteadores.
+
+    -   **Distribución de *assists_per_game***
+
+    La concentración mayor está entre 1 y 2 asistencias, con varios
+    valores entre 0--1 y un "colmillo" secundario alrededor de 5.
+    Existen valores aislados hasta 10 asistencias. En general, asimetría
+    derecha, pues pocos jugadores reparten asistencias muy altas.
+
+    -   **Distribución de *points_per_game***
+
+    Se aprecia un grupo denso de jugadores promediando 5--10 puntos, y
+    otro subconjunto (all‐stars) entre 25--35 puntos, generando una
+    distribución bimodal. Hay pocos en rangos intermedios (10--20).
+    Existe sesgo hacia la derecha por la "cola" de anotadores estrella.
+
+    -   **Distribución de *rendimiento_por_minuto***
+
+    Hay dos concentraciones claras: un grupo con eficiencia baja-media
+    (0.55--0.75) y otro con eficiencia alta (1.0--1.3). Unos pocos
+    extremos superan 1.4. La forma es multimodal, indicando diferencias
+    marcadas entre jugadores de rol y superestrellas.
+
+    ```{r Exploracion_b 2}
+
+    # 2. Detectar variables categóricas y gráficar diagramas de barras
+    cat_vars <- names(df)[sapply(df, function(x) is.factor(x) || is.character(x))]
+    for (var in cat_vars) {
+      print(
+        ggplot(df, aes_string(x = var)) +
+          geom_bar(fill = "tomato", color = "black") +
+          theme_minimal() +
+          labs(
+            title = paste("Distribución de", var),
+            x     = var,
+            y     = "Conteo"
+          ) +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      )
+    }
+    ```
+
+    -   **Distribución de *name***
+
+    Cada barra representa un jugador único; todas las barras tienen
+    altura 1. Esto confirma que no hay nombres repetidos: cada registro
+    es de un solo jugador. La gráfica sirve más para verificar
+    uniformidad que para "extraer tendencia".
+
+    -   **Distribución de *team***
+
+    Algunos equipos aparecen con varias barras (colocaciones más
+    altas), p. ej., Chicago Bulls y Sacramento Kings con 6 jugadores
+    cada uno. Muchos equipos tienen entre 1 y 3 jugadores, y pocos
+    quedan con solo 1. La distribución muestra concentración en unos
+    cuantos rosters grandes.
+
+    -   **Distribución de *nationality***
+
+    Predomina abrumadoramente "USA" con alrededor de 40 jugadores. El
+    resto de nacionalidades (Canadá, Camerún, Australia, etc.) apenas se
+    repite una o pocas veces. La cola extiende a varios países, pero muy
+    por debajo de la "barra" de USA, reflejando fuerte dominancia
+    estadounidense.
+
+    -   **Distribución de *region***
+
+    Casi todos los jugadores proceden de "América del Norte" (≈42), con
+    muy pocos de Europa, África, Asia u Oceanía (cada uno con 1--3). La
+    región América del Norte es claramente mayoritaria, y las demás
+    regiones apenas aportan jugadores.
+
+    -   **Distribución de *nivel_jugador***
+
+    La categoría más frecuente es "Bajo" con 18 jugadores, seguida de
+    "Alto" con 10. Hay 9 "Muy bajo", 7 "Elite" y 6 "Promedio". Esto
+    indica que la mayoría se concentra en el rango "Bajo" y "Alto", con
+    menos jugadores en los extremos "Muy bajo" y "Elite".
+
+    -   **Distribución de *conferencia***
+
+    Se reparten casi en partes iguales: 27 jugadores en la Eastern
+    Conference y 25 en la Western Conference. No hay una conferencia
+    claramente dominante; la diferencia es mínima, mostrando un
+    equilibrio entre ambas conferencias.
+
+c.  **¿Qué relación existe entre puntos, asistencias, rebotes por
+    partido con la cantidad de minutos?**
+
+    ```{r Exploracion_c}
+
+    # 1. Puntos por partido vs. Minutos jugados
+    ggplot(df, aes(x = minutes_played_per_game, y = points_per_game)) +
+      geom_point(color = "darkblue", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "steelblue") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre puntos por partido y minutos jugados",
+        x     = "Minutos jugados por partido",
+        y     = "Puntos por partido"
+      )
+
+    # 2. Asistencias por partido vs. Minutos jugados
+    ggplot(df, aes(x = minutes_played_per_game, y = assists_per_game)) +
+      geom_point(color = "darkgreen", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "forestgreen") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre asistencias por partido y minutos jugados",
+        x     = "Minutos jugados por partido",
+        y     = "Asistencias por partido"
+      )
+
+    # 3. Rebotes por partido vs. Minutos jugados
+    ggplot(df, aes(x = minutes_played_per_game, y = rebounds_per_game)) +
+      geom_point(color = "darkred", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre rebotes por partido y minutos jugados",
+        x     = "Minutos jugados por partido",
+        y     = "Rebotes por partido"
+      )
+
+    ```
+
+    -   **Relación entre los puntos por partido y los minutos jugados**
+
+    Se observa una correlación positiva muy marcada: a mayor tiempo en
+    cancha, más puntos por juego. Los puntos aumentan casi linealmente
+    con los minutos, indicando que los jugadores que juegan más suelen
+    ser las principales opciones ofensivas.
+
+    -   **Relación entre las asistencias por partido y los minutos
+        jugados**
+
+    También existe una tendencia ascendente: quien juega más minutos
+    tiende a repartir más asistencias, aunque el ajuste es algo más
+    disperso que en puntos. La pendiente indica que, por cada 10 minutos
+    adicionales, las asistencias crecen en promedio cerca de 1.5--2
+    pases de canasta.
+
+    -   **Relación entre los rebotes por partido y los minutos jugados**
+
+    Hay una clara relación positiva, aunque con mayor variabilidad en la
+    parte alta (algunos grandes reboteadores destacan con pocos
+    minutos). En promedio, por cada 10 minutos adicionales, los rebotes
+    suben alrededor de 2, pero la dispersión sugiere que el rol y la
+    posición influyen más que solo el tiempo jugado.
+
+d.  **¿Qué relación existe entre puntos, asistencias, rebotes por
+    partido con la edad?**
+
+    ```{r Exploracion_d}
+
+    # Librería necesaria
+    library(ggplot2)
+
+    # 1. Puntos por partido vs. Edad
+    ggplot(df, aes(x = age, y = points_per_game)) +
+      geom_point(color = "darkblue", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "steelblue") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre edad y puntos por partido",
+        x     = "Edad",
+        y     = "Puntos por partido"
+      )
+
+    # 2. Asistencias por partido vs. Edad
+    ggplot(df, aes(x = age, y = assists_per_game)) +
+      geom_point(color = "darkgreen", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "forestgreen") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre edad y asistencias por partido",
+        x     = "Edad",
+        y     = "Asistencias por partido"
+      )
+
+    # 3. Rebotes por partido vs. Edad
+    ggplot(df, aes(x = age, y = rebounds_per_game)) +
+      geom_point(color = "darkred", alpha = 0.6) +
+      geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
+      theme_minimal() +
+      labs(
+        title = "Relación entre edad y rebotes por partido",
+        x     = "Edad",
+        y     = "Rebotes por partido"
+      )
+
+    ```
+
+    -   **Relación entre los puntos por partido y la edad del jugador**
+
+    La tendencia general es ligeramente ascendente: los jugadores más
+    maduros tienden a promediar algo más de puntos. Sin embargo, hay
+    mucha dispersión, con anotadores de alto volumen tanto en 22 como en
+    34 años. La pendiente moderada sugiere que la experiencia suma
+    puntos, pero no es determinante.
+
+    -   **Relación entre las asistencias por partido y la edad del
+        jugador**
+
+    Se observa un leve aumento de asistencias a medida que sube la edad,
+    aunque con dispersión: algunos bases jóvenes rondan 8--10
+    asistencias, mientras que jugadores veteranos pueden quedar por
+    debajo de 3. La curva suave indica que, en promedio, los playmakers
+    veteranos reparten más pases, pero no es un patrón muy fuerte.
+
+    -   **Relación entre los rebotes por partido y la edad del jugador**
+
+    La línea de tendencia es casi plana con ligera pendiente positiva:
+    la edad no explica gran parte de la variación en rebotes. Existen
+    "picos" de reboteadores jóvenes y veteranos por igual (por ejemplo,
+    varios entre 24--26 años con 10--12 rebotes). En resumen, la
+    experiencia tiene un efecto marginal sobre los rebotes, siendo más
+    relevante la posición y el rol.
+
+e.  **¿Cuáles son los jugadores en el nivel "Elite"?**
+
+    ```{r Exploracion_e}
+
+    # Filtrar los jugadores de nivel "Elite" y seleccionar su nombre
+    elite_players <- df %>%
+      filter(nivel_jugador == "Elite") %>%
+      select(name)
+
+    # Mostrar los nombres de los jugadores en nivel Elite
+    print(elite_players)
+    ```
+
+    Los jugadores clasificados en nivel ***Elite*** son:
+
+    -   Damian Lillard
+
+    -   Giannis Antetokounmpo
+
+    -   Joel Embiid
+
+    -   LeBron James
+
+    -   Luka Dončić
+
+    -   Nikola Jokić
+
+    -   Stephen Curry
+
+f.  **¿Cómo esta distribuido el rendimiento por minuto por
+    conferencia?**
+
+    ```{r Exploracion_f}
+
+    ggplot(df, aes(x = conferencia, y = rendimiento_por_minuto, fill = conferencia)) +
+      geom_boxplot(alpha = 0.7) +
+      theme_minimal() +
+      labs(
+        title = "Distribución del rendimiento por minuto por conferencia",
+        x     = "Conferencia",
+        y     = "Rendimiento por minuto"
+      ) +
+      theme(legend.position = "none")
+    ```
+
+    La distribución del rendimiento por minuto es muy parecida en las
+    dos conferencias: ambas tienen su valor medio cerca de 0.7. La
+    *Eastern* muestra un poco más de variabilidad y algunos jugadores
+    llegan a rendir hasta 1.5, mientras que en la *Western* casi no
+    pasan de 1.3.
+
+g.  **¿Qué equipo tiene a los jugadores más jóvenes?**
+
+    ```{r Exploracion_g}
+
+    edad_por_equipo <- df %>%
+      group_by(team) %>%
+      summarise(
+        edad_media = mean(age, na.rm = TRUE)
+      ) %>%
+      arrange(edad_media)
+
+    # Mostrar el equipo con la menor edad media
+    equipo_mas_joven <- edad_por_equipo %>% slice(1)
+    print(equipo_mas_joven)
+
+
+    ```
+
+    El equipo con los jugadores más jóvenes son los Detroit Pistons
+    (edad media de 20 años).
+
+h.  **¿Qué equipo tiene a los jugadores con mayores puntos por
+    partido?**
+
+    ```{r Exploracion_h}
+
+    # Obtener el top 5 de jugadores con más puntos por partido, mostrando nombre, equipo y PPG
+    top5_scorers <- df %>%
+      arrange(desc(points_per_game)) %>%
+      select(name, team, points_per_game) %>%
+      head(5)
+
+    # Imprimir el resultado
+    print(top5_scorers)
+    ```
+
+Los cinco máximos anotadores (con su respectivo equipo) son:
+
+-   Joel Embiid - Boston Celtics
+
+-   Luka Dončić - Dallas Mavericks
+
+-   Damian Lillard - Milwaukee Bucks
+
+-   Shai Gilgeous-Alexander - Oklahoma City Thunder
+
+-   Giannis Antetokounmpo - Philadelphia 76ers
+
+Cada uno pertenece a un equipo distinto, por lo que en este top 5
+aparecen cinco equipos diferentes.
+
+# **Clusterización**
+
+Para llevar a cabo la clusterización, hemos decidido utilizar dos
+métodos distintos. En primer lugar, llevaremos a cabo el método de
+K-means. Posteriormente, utilizaremos el método jerárquico. Una vez
+creados los clústers con ambos métodos, decidiremos cuál es el que mejor
+se adapta a este proyecto.
+
+### **1. Dummificación del dataset**
+
+Para que nuestros modelos puedan incluir las variables categóricas,
+hemos decidido dummificarlas.
+
+```{r Dummificacion masiva}
+set.seed(365)
+
+df_cluster <- df[ , !(colnames(df) %in% c("nacionalidad", "nationality", "rendimiento_por_minuto", "nivel_jugador", "team"))]
+
+cat_vars <- setdiff(
+  colnames(df_cluster)[sapply(df_cluster, function(x) is.factor(x) || is.character(x))], "name")
+
+df_dummies <- dummy_cols(df_cluster, 
+                         select_columns = cat_vars, 
+                         remove_selected_columns = TRUE,
+                         remove_first_dummy = FALSE)
+
+num_cols <- sapply(df_dummies, is.numeric) & !grepl("_", names(df_dummies))
+
+df_dummies$name = NULL
+
+num_cols <- c("age", "minutes_played_per_game", "rebounds_per_game", "assists_per_game", "points_per_game")
+df_scaled <- scale(df_dummies[ , num_cols])
+
+# Combinar con el resto (las columnas dummy)
+df_scaled <- cbind(df_scaled, df_dummies[ , !colnames(df_dummies) %in% num_cols])
+```
+
+### **2. Clusterización por K-means**
+
+```{r Clusterizacion por K-means 1}
+set.seed(365)
+
+tot_withinss <- map_dbl(2:10,  function(k){
+  model <- kmeans(x = df_scaled, centers = k)
+  model$tot.withinss})
+
+elbow_df <- data.frame(
+  k = 2:10 ,
+  tot_withinss = tot_withinss)
+
+# Gráfico de codo
+ggplot(elbow_df, aes(x = k, y = tot_withinss)) +
+  geom_line() +
+  labs(title = "Gráfico de codo") + 
+  scale_x_continuous(breaks = 2:10)
+
+sil_width <- map_dbl(2:10,  function(k){
+  model <- pam(x = df_scaled, k = k)
+  model$silinfo$avg.width})
+
+sil_df <- data.frame(
+  k = 2:10,
+  sil_width = sil_width)
+
+# Gráfico de silueta
+ggplot(sil_df, aes(x = k, y = sil_width)) +
+  geom_line() +
+  labs(title = "Gráfico de silueta") + 
+  scale_x_continuous(breaks = 2:10)
+```
+
+En el **gráfico del codo** se observa cómo disminuye el tamaño de los
+clústers (*tot_withinss*) a medida que aumenta el número de clústers.
+Aunque la curva presenta una caída constante, por lo que no hay un
+"codo" como tal, se podría decir que alrededor del punto k = 6, la tasa
+de disminución comienza a ser menos pronunciada (o menos significativa).
+Este punto representa un equilibrio adecuado entre la cantidad de
+clústers y la reducción de la variabilidad interna, lo que sugiere que
+seis grupos capturan suficientemente la estructura del conjunto de datos
+sin sobresegmentarlo.
+
+Por otro lado, el **gráfico de silueta** muestra la calidad de la
+separación entre clústers. Aunque el valor más alto de silueta se da en
+k = 2, este número sería demasiado bajo para capturar la diversidad del
+conjunto de jugadores. A partir de k = 5 y especialmente en k = 6, los
+valores de ancho de silueta se estabilizan (y empiezan a subir
+ligeramente), manteniéndose alrededor de 0.27, lo que indica una
+separación aceptable entre clústers.
+
+Por tanto, la elección de 6 clústers representa una elección razonable
+entre tamaño interno y separación entre clústers, lo que la convierte en
+la mejor opción tanto desde el punto de vista técnico como
+interpretativo en el contexto del análisis de rendimiento de jugadores.
+
+```{r Clusterizacion por K-means 2}
+set.seed(365)
+
+model_customers <- kmeans(df_scaled, centers = 6)
+cluster_k <- model_customers$cluster
+
+segment_customers_k = cbind(df_scaled, cluster_k)
+segment_customers_k2 = cbind(df, cluster_k)
+
+df = cbind(df, cluster_k)
+df_scaled = cbind(df_scaled, cluster_k)
+
+# Conteo de jugadores por clúster
+count(segment_customers_k, cluster_k)
+```
+
+### **3. Clusterización jerárquica**
+
+```{r Clusterización jerárquica 1}
+set.seed(365)
+
+# Distancia euclediana entre los jugadores
+dist_jugadores <- dist(df_scaled)
+
+hc_jugadores <- hclust(dist_jugadores, method = "complete")
+
+# Dendograma
+plot(hc_jugadores)
+```
+
+```{r Clusterización jerárquica 2}
+
+# Separación del dendograma cuando la altura (h) es de 5
+plot(hc_jugadores)
+rect.hclust(hc_jugadores, h = 5)
+
+# Separación del dendograma en 6 clústers
+dend_jugadores <- as.dendrogram(hc_jugadores)
+dend_colored <- color_branches(dend_jugadores, k = 6)
+plot(dend_colored)
+```
+
+### **4. Elección de método y análisis de clústers**
+
+Finalmente, hemos decidido quedarnos con el método de **clusterización
+por K-means**. Esta elección se debe a que, al comparar con el enfoque
+jerárquico, el dendograma no presenta un corte claro que genere seis
+grupos equilibrados. Las fusiones ocurren a diferentes alturas y, para
+"forzar" k=6, terminamos agrupando jugadores con perfiles muy dispares,
+lo que produce clústers desbalanceados y de difícil interpretación. Si
+bien es cierto que en el modelo jerárquico se podría optar por un número
+diferente de clústers que los determinados para K-means con el gráfico
+de codo y de silueta (k=6), creemos que una cantidad menor a 6 clústers
+no sería adecuada para segmentar correctamente los datos que se tienen
+(son jugadores bastante variados), mientras que una cantidad mayor
+podría llevar a una sobresegmentación. Además, aunque en este caso se
+tienen solo 50 jugadores, si se quisiera llevar esta clusterización a
+una base de datos de mayor escala, el algoritmo de K-means sería más
+eficiente. En consecuencia, K-means con seis centros nos permite obtener
+clústers homogéneos, bien definidos, interpretables y computacionalmente
+eficientes, adaptados al análisis de rendimiento de jugadores.
+
+Así pues, a continuación de presenta el análisis de los 6 clústers que
+generamos utilizando dicho método. La exportación de los datos a
+archivos csv ha sido para realizar análisis complementarios en Excel.
+
+```{r Análisis de clústers, message=FALSE, warning=FALSE}
+
+Resumen_K <- df %>%
+  group_by(cluster_k) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+Resumen_K
+
+Resumen_K_long <- Resumen_K %>%
+  pivot_longer(
+    cols = -cluster_k,
+    names_to = "nombre_variable",
+    values_to = "valor")
+
+ggplot(Resumen_K_long, aes(x = nombre_variable, y = valor, fill = nombre_variable )) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~ cluster_k, scales = "free_y") +
+  labs(
+    title = "Estadísticas por clúster",
+    x = "Variable y estadística",
+    y = "Valor"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+clusplot(segment_customers_k,segment_customers_k$cluster_k,shape=TRUE,color=TRUE,labels=2)
+
+write.csv(df, "df_clusterizado.csv", row.names = FALSE, fileEncoding = "latin1")
+
+write.csv(df_scaled, "df_scaled.csv", row.names = FALSE, fileEncoding = "latin1")
+```
+
+Estas son las características y atributos que hemos determinado que
+comparte cada clúster:
+
+**Clúster 1: *Rookie invisible***
+
+Este grupo está compuesto por jugadores jóvenes, con una edad promedio
+de aproximadamente 24 años. Su tiempo en cancha es reducido y su
+rendimiento por minuto es bajo, lo que indica una participación limitada
+y poco impacto en el juego.
+
+**Clúster 2: *Explosivo emergente***
+
+En este grupo se encuentran jugadores también jóvenes, con una edad
+cercana a los 25 años. Se destacan por su alta actividad en el campo,
+reflejada en muchas asistencias y puntos, así como un rendimiento
+general elevado.
+
+**Clúster 3: *Leyenda activa***
+
+Este grupo lo conforman jugadores con mayor edad, alrededor de los 33
+años. A pesar de su veteranía, tienen una presencia significativa en el
+juego con muchos minutos disputados, un buen rendimiento y un número
+considerable de asistencias.
+
+**Clúster 4: *Alpha del juego***
+
+Aquí se agrupan jugadores de edad media, aproximadamente 26 años. Son
+los que más sobresalen en el juego, liderando en rebotes, asistencias y
+puntos, lo cual evidencia un impacto global muy alto en el rendimiento
+del equipo.
+
+**Clúster 5: *Pieza silenciosa***
+
+Este clúster incluye jugadores mayores, cerca de los 30 años. Su tiempo
+en cancha es moderado y su rendimiento se considera medio-bajo,
+cumpliendo un rol menos protagónico dentro del equipo.
+
+**Clúster 6: *Relevo estratégico***
+
+Este grupo está formado por jugadores muy jóvenes, con una edad
+aproximada de 22 años. Aunque tienen minutos medios en cancha, sus
+estadísticas generales y rendimiento son modestos, lo que sugiere un
+papel de apoyo dentro del equipo.
