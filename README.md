@@ -29,16 +29,20 @@
 
 ## Estructura del repositorio: 
 
-├── Proyecto Unsupervised Learning (NBA) - DMyML.Rmd           # Script principal en RMarkdown
-├── Proyecto-Unsupervised-Learning--NBA----DMyML.html          # Reporte HTML generado desde el Rmd
-├── Proyecto final (Unsupervised learning) - Presentación.pdf  # Presentación en PDF
-├── NBA Performance (Dashboard) - DMyML.pbix                   # Dashboard principal en Power BI
-├── Tablero Bi de los jugadores.pbix                           # Versión intermedia del dashboard
-├── df_scaled.csv / df_clusterizado.csv                        # Datos preprocesados y segmentados
-├── jugadores_nba_fotos.csv / jugadores_nba_fotos_con_id.csv   # Dataset con información visual
-├── scrapping.py                                               # Script para obtener imágenes de jugadores
-├── df2.xlsx / nba_players_2023_clustering (1).csv             # Dataset original y procesado
-├── Presentación1.png                                          # fondo de power bi. 
+├── Proyecto Unsupervised Learning (NBA) - DMyML.Rmd              # Script principal en RMarkdown
+├── Proyecto-Unsupervised-Learning--NBA----DMyML.html             # Reporte HTML generado desde el Rmd
+├── Proyecto final (Unsupervised learning) - Presentación.pdf     # Presentación en PDF
+├── NBA Performance (Dashboard) - DMyML.pbix                      # Dashboard principal en Power BI
+├── Tablero Bi de los jugadores.pbix                              # Versión intermedia del dashboard
+├── df_scaled.csv                                                 # Datos preprocesados (escalados)
+├── df_clusterizado.csv                                           # Datos segmentados por clustering
+├── jugadores_nba_fotos.csv                                       # Dataset con fotos de jugadores
+├── jugadores_nba_fotos_con_id.csv                                # Dataset con fotos e identificadores
+├── scrapping.py                                                  # Script para obtener imágenes de jugadores
+├── df2.xlsx                                                      # Dataset original
+├── nba_players_2023_clustering (1).csv                           # Dataset procesado para clustering
+├── Presentación1.png                                             # Imagen de fondo para Power BI
+
 
 ## Requisitos
 
