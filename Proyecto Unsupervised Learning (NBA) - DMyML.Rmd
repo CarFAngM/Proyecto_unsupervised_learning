@@ -558,7 +558,7 @@ se adapta a este proyecto.
 
 ### **1. Dummificación del dataset**
 
-Para que nuestros modelos puedan incluir las variables categóricas,
+Para que nuestros modelos puedan incluir las variables cualitativas,
 hemos decidido dummificarlas.
 
 ```{r Dummificacion masiva}
@@ -684,7 +684,7 @@ dend_colored <- color_branches(dend_jugadores, k = 6)
 plot(dend_colored)
 ```
 
-### **4. Elección de método y análisis de clústers**
+### **4. Elección del método y análisis de clústers**
 
 Finalmente, hemos decidido quedarnos con el método de **clusterización
 por K-means**. Esta elección se debe a que, al comparar con el enfoque
