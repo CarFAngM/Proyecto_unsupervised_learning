@@ -29,8 +29,6 @@
 
 ## Estructura del repositorio: 
 
-## Estructura del Repositorio
-
 Archivos principales
 - Proyecto Unsupervised Learning (NBA) - DMyML.Rmd
 - Script principal en RMarkdown.
